@@ -20,6 +20,11 @@ if(CMAKE_CROSSCOMPILING)
 	# check for gcw0
 	if(CMAKE_C_COMPILER MATCHES ".*gcw0-linux.*")
 		set(GCW0 1)
+		message("Cross compiling for GCW-Zero")
+	endif()
+	# check for wii
+	if(WII)
+		message("Cross compiling for Wii")
 	endif()
 endif()
 
