@@ -542,9 +542,13 @@ const char *GetHomeDirectory(void)
 
 void GetDataFilePath(char *buf, const char *path)
 {
+#ifdef __EMSCRIPTEN__
+	sprintf(buf, "/%s", path);
+#else
 	char relbuf[CDOGS_PATH_MAX];
 	sprintf(relbuf, "%s%s", CDOGS_DATA_DIR, path);
 	RealPath(relbuf, buf);
+#endif
 }
 
 
@@ -555,12 +559,16 @@ void GetDataFilePath(char *buf, const char *path)
 char cfpath[CDOGS_PATH_MAX];
 const char *GetConfigFilePath(const char *name)
 {
+#ifdef __EMSCRIPTEN__
+	sprintf(cfpath, "/%s/%s", CDOGS_CFG_DIR, name);
+#else
 	const char *homedir = GetHomeDirectory();
 
 	strcpy(cfpath, homedir);
 
 	strcat(cfpath, CDOGS_CFG_DIR);
 	strcat(cfpath, name);
+#endif
 
 	return cfpath;
 }
@@ -594,6 +602,7 @@ int mkdir_deep(const char *path)
 
 void SetupConfigDir(void)
 {
+#ifndef __EMSCRIPTEN__
 	const char *cfg_p = GetConfigFilePath("");
 
 	printf("Creating Config dir... ");
@@ -613,6 +622,7 @@ void SetupConfigDir(void)
 				perror("Error creating config directory:");
 		}
 	}
+#endif
 
 	return;
 }

@@ -29,7 +29,7 @@
 #pragma once
 
 #include <SDL_events.h>
-#include <SDL_keysym.h>
+//#include <SDL_keysym.h>
 
 #include "config.h"
 
@@ -69,7 +69,7 @@ typedef struct
 	KeyPress previousKeys[SDLK_LAST];
 	KeyPress currentKeys[SDLK_LAST];
 	KeyPress pressedKeys[SDLK_LAST];
-	SDLMod modState;
+	SDL_Keymod modState;
 	Uint32 ticks;
 	Uint32 repeatedTicks;
 	int isFirstRepeat;
@@ -80,8 +80,8 @@ typedef struct
 void KeyInit(keyboard_t *keyboard);
 void KeyLoadPlayerKeys(input_keys_t *keys, Config *c);
 void KeyPrePoll(keyboard_t *keyboard);
-void KeyOnKeyDown(keyboard_t *keyboard, SDL_keysym s);
-void KeyOnKeyUp(keyboard_t *keyboard, SDL_keysym s);
+void KeyOnKeyDown(keyboard_t *keyboard, SDL_Keysym s);
+void KeyOnKeyUp(keyboard_t *keyboard, SDL_Keysym s);
 void KeyPostPoll(keyboard_t *keyboard, Uint32 ticks);
 int KeyIsDown(keyboard_t *keyboard, int key);
 int KeyIsPressed(keyboard_t *keyboard, int key);

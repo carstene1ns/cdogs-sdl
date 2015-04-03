@@ -86,7 +86,7 @@ void KeyPrePoll(keyboard_t *keyboard)
 	keyboard->modState = SDL_GetModState();
 }
 
-void KeyOnKeyDown(keyboard_t *keyboard, SDL_keysym s)
+void KeyOnKeyDown(keyboard_t *keyboard, SDL_Keysym s)
 {
 	keyboard->currentKeys[s.sym].isPressed = 1;
 	if (s.unicode >= (Uint16)' ' && s.unicode <= (Uint16)'~')
@@ -102,7 +102,7 @@ void KeyOnKeyDown(keyboard_t *keyboard, SDL_keysym s)
 		sizeof *keyboard->pressedKeysBuffer * (8 - 1));
 	keyboard->pressedKeysBuffer[0] = s.sym;
 }
-void KeyOnKeyUp(keyboard_t *keyboard, SDL_keysym s)
+void KeyOnKeyUp(keyboard_t *keyboard, SDL_Keysym s)
 {
 	keyboard->currentKeys[s.sym].isPressed = 0;
 }
@@ -153,9 +153,9 @@ void KeyPostPoll(keyboard_t *keyboard, Uint32 ticks)
 		keyboard->isFirstRepeat = false;
 		// Ignore the keys that tend to stay pressed/unpressed
 		// i.e. lock keys
-		keyboard->pressedKeys[SDLK_NUMLOCK].isPressed = false;
+		keyboard->pressedKeys[SDLK_NUMLOCKCLEAR].isPressed = false;
 		keyboard->pressedKeys[SDLK_CAPSLOCK].isPressed = false;
-		keyboard->pressedKeys[SDLK_SCROLLOCK].isPressed = false;
+		keyboard->pressedKeys[SDLK_SCROLLLOCK].isPressed = false;
 	}
 	else
 	{

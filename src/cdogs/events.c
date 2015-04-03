@@ -102,6 +102,7 @@ void EventPoll(EventHandlers *handlers, Uint32 ticks)
 		case SDL_MOUSEBUTTONUP:
 			MouseOnButtonUp(&handlers->mouse, e.button.button);
 			break;
+#ifndef __EMSCRIPTEN__
 		case SDL_VIDEORESIZE:
 			{
 				const int scale = ConfigGetInt(&gConfig, "Graphics.ScaleFactor");
@@ -115,6 +116,7 @@ void EventPoll(EventHandlers *handlers, Uint32 ticks)
 				handlers->HasResolutionChanged = 1;
 			}
 			break;
+#endif
 		case SDL_QUIT:
 			handlers->HasQuit = true;
 			break;
@@ -170,11 +172,13 @@ static int GetMouseCmd(
 			}
 		}
 	}
+#ifndef __EMSCRIPTEN__
 	else
 	{
 		if (mouseFunc(mouse, SDL_BUTTON_WHEELUP))			cmd |= CMD_UP;
 		else if (mouseFunc(mouse, SDL_BUTTON_WHEELDOWN))	cmd |= CMD_DOWN;
 	}
+#endif
 
 	if (mouseFunc(mouse, SDL_BUTTON_LEFT))					cmd |= CMD_BUTTON1;
 	if (mouseFunc(mouse, SDL_BUTTON_RIGHT))					cmd |= CMD_BUTTON2;

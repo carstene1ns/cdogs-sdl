@@ -29,6 +29,9 @@
 #include "game_loop.h"
 
 #include <SDL_timer.h>
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+#endif
 
 #include "config.h"
 #include "events.h"
@@ -52,10 +55,46 @@ GameLoopData GameLoopDataNew(
 	return g;
 }
 
+void EmscriptenMainLoop(GameLoopData *data)
+{
+	Uint32 ticksNow = SDL_GetTicks();
+	GameLoopResult result = UPDATE_RESULT_OK;
+
+	// Input
+	if ((data->Frames & 1) || !data->InputEverySecondFrame)
+	{
+		EventPoll(&gEventHandlers, ticksNow);
+		if (data->InputFunc)
+		{
+			data->InputFunc(data->InputData);
+		}
+	}
+
+	NetClientPoll(&gNetClient);
+	NetServerPoll(&gNetServer);
+
+	// Update
+	data->Frames++;
+	result = data->UpdateFunc(data->UpdateData);
+	if (data->DrawFunc)
+	{
+		data->DrawFunc(data->DrawData);
+	}
+	BlitFlip(&gGraphicsDevice);
+	data->HasDrawnFirst = true;
+
+	if (result == UPDATE_RESULT_EXIT)
+	{
+		emscripten_cancel_main_loop();
+		printf("left main loop");
+	}
+}
+
 void GameLoop(GameLoopData *data)
 {
 	EventReset(&gEventHandlers, gEventHandlers.mouse.cursor);
 
+#ifndef __EMSCRIPTEN__
 	GameLoopResult result = UPDATE_RESULT_OK;
 	Uint32 ticksNow = SDL_GetTicks();
 	Uint32 ticksElapsed = 0;
@@ -130,4 +169,7 @@ void GameLoop(GameLoopData *data)
 			data->HasDrawnFirst = true;
 		}
 	}
+#else
+    emscripten_set_main_loop_arg((em_arg_callback_func)EmscriptenMainLoop, data, 0, 1);
+#endif
 }

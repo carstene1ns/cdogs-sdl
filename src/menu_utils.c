@@ -29,6 +29,7 @@
 #include "menu_utils.h"
 
 #include <assert.h>
+#include <ctype.h>
 
 #include <cdogs/draw.h>
 #include <cdogs/font.h>

@@ -69,9 +69,11 @@ SoundDevice gSoundDevice;
 
 int OpenAudio(int frequency, Uint16 format, int channels, int chunkSize)
 {
+#ifndef __EMSCRIPTEN__
 	int qFrequency;
 	Uint16 qFormat;
 	int qChannels;
+#endif
 
 	if (Mix_OpenAudio(frequency, format, channels, chunkSize) != 0)
 	{
@@ -79,6 +81,7 @@ int OpenAudio(int frequency, Uint16 format, int channels, int chunkSize)
 		return 1;
 	}
 
+#ifndef __EMSCRIPTEN__
 	// Check that we got the specs we wanted
 	Mix_QuerySpec(&qFrequency, &qFormat, &qChannels);
 	debug(D_NORMAL, "spec: f=%d fmt=%d c=%d\n", qFrequency, qFormat, qChannels);
@@ -87,6 +90,7 @@ int OpenAudio(int frequency, Uint16 format, int channels, int chunkSize)
 		printf("Audio not what we want.\n");
 		return 1;
 	}
+#endif
 
 	return 0;
 }
@@ -113,7 +117,11 @@ void SoundAdd(CArray *sounds, const char *name, Mix_Chunk *data)
 void SoundInitialize(SoundDevice *device, const char *path)
 {
 	memset(device, 0, sizeof *device);
+#ifdef __EMSCRIPTEN__
+	if (OpenAudio(22050, AUDIO_S16LSB, 2, 1024) != 0)
+#else
 	if (OpenAudio(22050, AUDIO_S16, 2, 512) != 0)
+#endif
 	{
 		return;
 	}
@@ -233,6 +241,7 @@ void SoundTerminate(SoundDevice *device, const bool waitForSoundsComplete)
 }
 
 #define OUT_OF_SIGHT_DISTANCE_PLUS 200
+#ifndef __EMSCRIPTEN__
 static void MuffleEffect(int chan, void *stream, int len, void *udata)
 {
 	UNUSED(chan);
@@ -246,6 +255,7 @@ static void MuffleEffect(int chan, void *stream, int len, void *udata)
 		samples[1] = (samples[1] + samples[3] + samples[5]) / 3;
 	}
 }
+#endif
 static void SoundPlayAtPosition(
 	SoundDevice *device, Mix_Chunk *data, int distance, int bearing,
 	const bool isMuffled)
@@ -289,6 +299,7 @@ static void SoundPlayAtPosition(
 			return;
 		}
 	}
+#ifndef __EMSCRIPTEN__
 	Mix_SetPosition(channel, (Sint16)bearing, (Uint8)distance);
 	if (isMuffled)
 	{
@@ -297,6 +308,7 @@ static void SoundPlayAtPosition(
 			fprintf(stderr, "Mix_RegisterEffect: %s\n", Mix_GetError());
 		}
 	}
+#endif
 }
 
 void SoundPlay(SoundDevice *device, Mix_Chunk *data)

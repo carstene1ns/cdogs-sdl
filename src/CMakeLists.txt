@@ -1,9 +1,13 @@
 include_directories(. ${SDL_INCLUDE_DIR})
 
 add_subdirectory(cdogs)
-add_subdirectory(cdogsed)
+if(NOT EMSCRIPTEN)
+	add_subdirectory(cdogsed)
+endif()
 add_subdirectory(json)
-add_subdirectory(tests)
+if(NOT EMSCRIPTEN)
+    add_subdirectory(tests)
+endif()
 
 set(CDOGS_SDL_SOURCES
 	autosave.c
@@ -59,6 +63,11 @@ if(APPLE)
 		BUILD_WITH_INSTALL_RPATH 1
 		INSTALL_RPATH "@loader_path/../Frameworks")
 endif()
+if(EMSCRIPTEN)
+	set_target_properties(cdogs-sdl PROPERTIES
+		LINK_FLAGS "-O0 -g -s TOTAL_MEMORY=40000000 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s ALIASING_FUNCTION_POINTERS=0 --preload-file ${CMAKE_SOURCE_DIR}/emscripten_data@/")
+		#LINK_FLAGS "-O3 -s ALLOW_MEMORY_GROWTH=1 --preload-file ${CMAKE_SOURCE_DIR}/emscripten_data@/")
+endif()
 target_link_libraries(cdogs-sdl cdogs ${EXTRA_LIBRARIES})
 
 if(GCW0)
@@ -70,6 +79,7 @@ if(GCW0)
 	)
 endif()
 
+if(NOT EMSCRIPTEN)
 add_executable(cdogs-sdl-editor MACOSX_BUNDLE cdogsed.c ${CDOGS_SDL_EXTRA})
 if(APPLE)
 	set_target_properties(cdogs-sdl-editor PROPERTIES
@@ -78,3 +88,4 @@ if(APPLE)
 		INSTALL_RPATH "@loader_path/../Frameworks")
 endif()
 target_link_libraries(cdogs-sdl-editor cdogsedlib cdogs ${EXTRA_LIBRARIES})
+endif()

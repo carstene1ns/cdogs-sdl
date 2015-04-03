@@ -28,7 +28,7 @@
 #include "map_archive.h"
 
 #include <locale.h>
-
+#include <strings.h>
 #include <SDL_image.h>
 
 #include "ammo.h"
@@ -330,7 +330,19 @@ static void LoadArchivePics(
 			goto bail;
 		}
 		SDL_RWops *rwops = SDL_RWFromMem(buf, len);
-		bool isPng = IMG_isPNG(rwops);
+		bool isPng;
+#ifdef __EMSCRIPTEN__
+		/* fallback to file name */
+		const char *dot = strrchr(path, '.');
+		if(!dot || dot == path)
+			isPng = false;
+		if (strncasecmp(dot, ".png", 4) == 0)
+			isPng = true;
+		else
+			isPng = false;
+#else
+		isPng = IMG_isPNG(rwops);
+#endif
 		if (isPng)
 		{
 			SDL_Surface *data = IMG_Load_RW(rwops, 0);

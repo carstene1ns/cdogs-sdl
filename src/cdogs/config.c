@@ -659,11 +659,11 @@ static Config ConfigLoadDefault(void)
 	ConfigGroupAdd(&pk0, ConfigNewInt("map", SDLK_TAB, 0, 0, 0, NULL, NULL));
 	ConfigGroupAdd(&input, pk0);
 	Config pk1 = ConfigNewGroup("PlayerKeys1");
-	ConfigGroupAdd(&pk1, ConfigNewInt("left", SDLK_KP4, 0, 0, 0, NULL, NULL));
-	ConfigGroupAdd(&pk1, ConfigNewInt("right", SDLK_KP6, 0, 0, 0, NULL, NULL));
-	ConfigGroupAdd(&pk1, ConfigNewInt("up", SDLK_KP8, 0, 0, 0, NULL, NULL));
-	ConfigGroupAdd(&pk1, ConfigNewInt("down", SDLK_KP2, 0, 0, 0, NULL, NULL));
-	ConfigGroupAdd(&pk1, ConfigNewInt("button1", SDLK_KP0, 0, 0, 0, NULL, NULL));
+	ConfigGroupAdd(&pk1, ConfigNewInt("left", SDLK_KP_4, 0, 0, 0, NULL, NULL));
+	ConfigGroupAdd(&pk1, ConfigNewInt("right", SDLK_KP_6, 0, 0, 0, NULL, NULL));
+	ConfigGroupAdd(&pk1, ConfigNewInt("up", SDLK_KP_8, 0, 0, 0, NULL, NULL));
+	ConfigGroupAdd(&pk1, ConfigNewInt("down", SDLK_KP_2, 0, 0, 0, NULL, NULL));
+	ConfigGroupAdd(&pk1, ConfigNewInt("button1", SDLK_KP_0, 0, 0, 0, NULL, NULL));
 	ConfigGroupAdd(&pk1, ConfigNewInt("button2", SDLK_KP_ENTER, 0, 0, 0, NULL, NULL));
 	ConfigGroupAdd(&pk1, ConfigNewInt("map", SDLK_KP_PERIOD, 0, 0, 0, NULL, NULL));
 	ConfigGroupAdd(&input, pk1);

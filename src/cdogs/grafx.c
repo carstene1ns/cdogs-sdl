@@ -53,7 +53,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 
-#include <hqx.h>
+#ifndef __EMSCRIPTEN__
+	#include <hqx.h>
+#endif
+#include <SDL.h>
 #include <SDL_events.h>
 #include <SDL_mouse.h>
 
@@ -176,7 +179,9 @@ void GraphicsInit(GraphicsDevice *device)
 	AddGraphicsMode(device, 320, 240, 2);
 	device->buf = NULL;
 	device->bkg = NULL;
+#ifndef __EMSCRIPTEN__
 	hqxInit();
+#endif
 	GraphicsConfigSetFromConfig(&device->cachedConfig);
 }
 

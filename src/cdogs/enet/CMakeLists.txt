@@ -30,7 +30,7 @@ endif()
 if(HAS_MSGHDR_FLAGS)
     add_definitions(-DHAS_MSGHDR_FLAGS=1)
 endif()
-if(HAS_SOCKLEN_T)
+if(HAS_SOCKLEN_T OR EMSCRIPTEN)
     add_definitions(-DHAS_SOCKLEN_T=1)
 endif()
  

@@ -1,4 +1,6 @@
-add_subdirectory(hqx/src)
+if(NOT EMSCRIPTEN)
+	add_subdirectory(hqx/src)
+endif()
 include_directories(hqx/src ${SDL_INCLUDE_DIR})
 add_definitions(-DSTATIC)
 set(CDOGS_SOURCES
@@ -160,15 +162,17 @@ set(CDOGS_HEADERS
 	utils.h
 	vector.h
 	weapon.h)
-set(HQX_SOURCES
-	hqx/src/common.c
-	hqx/src/hq2x.c
-	hqx/src/hq3x.c
-	hqx/src/hq4x.c
-	hqx/src/init.c)
-set(HQX_HEADERS
-	hqx/src/common.h
-	hqx/src/hqx.h)
+if(NOT EMSCRIPTEN)
+	set(HQX_SOURCES
+		hqx/src/common.c
+		hqx/src/hq2x.c
+		hqx/src/hq3x.c
+		hqx/src/hq4x.c
+		hqx/src/init.c)
+	set(HQX_HEADERS
+		hqx/src/common.h
+		hqx/src/hqx.h)
+endif()
 set(NANOPB_SOURCES
 	proto/client.pb.c
 	proto/server.pb.c

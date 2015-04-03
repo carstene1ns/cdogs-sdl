@@ -21,6 +21,9 @@ if(CMAKE_CROSSCOMPILING)
 	# check for gcw0
 	if(CMAKE_C_COMPILER MATCHES ".*gcw0-linux.*")
 		set(GCW0 1)
+	# check for emscripten
+	elseif(CMAKE_C_COMPILER MATCHES ".*emcc.*")
+		set(EMSCRIPTEN 1)
 	endif()
 endif()
 
@@ -44,9 +47,12 @@ if(DEBUG)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-find_package(SDL REQUIRED)
-find_package(SDL_mixer REQUIRED)
-find_package(SDL_image REQUIRED)
+# emscripten has them hard-coded
+if(NOT EMSCRIPTEN)
+    find_package(SDL REQUIRED)
+    find_package(SDL_mixer REQUIRED)
+    find_package(SDL_image REQUIRED)
+endif()
 find_package(PhysFS)
 set(USE_NET 0)
 
@@ -60,11 +66,11 @@ ENDIF()
 INCLUDE_DIRECTORIES(src/cdogs/enet/include)
 
 execute_process(
-	COMMAND "sh" "sdl-config" "--libs"
+	COMMAND "sdl-config" "--libs"
 	OUTPUT_VARIABLE SDL_LDFLAGS
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 execute_process(
-	COMMAND "sh" "sdl-config" "--cflags"
+	COMMAND "sdl-config" "--cflags"
 	OUTPUT_VARIABLE SDL_CFLAGS
 	OUTPUT_STRIP_TRAILING_WHITESPACE)
 # Work-around for CMake SDL bug (need to link SDLmain before SDL)
@@ -98,16 +104,22 @@ else()
 		-fsigned-char
 		-Wall -W
 		-Wstrict-prototypes -Wpointer-arith -Wcast-qual)
-	if(DEBUG)
-		ADD_DEFINITIONS(-g)
-		if(DEBUG_PROFILE)
-			ADD_DEFINITIONS(-p)
-		endif(DEBUG_PROFILE)
-	else()
-		ADD_DEFINITIONS(-O2)
+	if(NOT EMSCRIPTEN)
+		if(DEBUG)
+			ADD_DEFINITIONS(-g)
+			if(DEBUG_PROFILE)
+				ADD_DEFINITIONS(-p)
+			endif(DEBUG_PROFILE)
+		else()
+			ADD_DEFINITIONS(-O2)
+		endif()
 	endif()
 	if(GCW0)
 		add_definitions(-D__GCWZERO__)
+	endif()
+	if(EMSCRIPTEN)
+		add_definitions(-D__EMSCRIPTEN__ -Wno-warn-absolute-paths -O0 -g -s TOTAL_MEMORY=40000000 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s ALIASING_FUNCTION_POINTERS=0)
+		#add_definitions(-D__EMSCRIPTEN__ -Wno-warn-absolute-paths -O3 -s -s TOTAL_MEMORY=40000000)
 	endif()
     if(CLANG)
 		add_definitions(-std=c99)
@@ -118,7 +130,7 @@ else()
 			add_definitions(-Wshadow)
 		endif()
 	endif()
-	if(NOT BEOS AND NOT HAIKU)
+	if(NOT BEOS AND NOT HAIKU AND NOT EMSCRIPTEN)
 		add_definitions(-Winline -Werror)
 		set(EXTRA_LIBRARIES "m")
 	endif()
@@ -134,9 +146,11 @@ endif()
 message("Data dir is ${CDOGS_DATA_DIR}")
 if(WIN32)
 	set(CDOGS_CFG_DIR "C-Dogs SDL/")
+elseif(EMSCRIPTEN)
+	set(CDOGS_CFG_DIR "config")
 else()
 	set(CDOGS_CFG_DIR ".config/cdogs-sdl/")
-ENDIF()
+endif()
 SET(SOURCE_DIRECTORY ".")
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ".")
 IF(UNIX AND NOT APPLE)
@@ -151,12 +165,21 @@ CONFIGURE_FILE(${SOURCE_DIRECTORY}/src/cdogs/sys_config.h.cmake ${SOURCE_DIRECTO
 SET_SOURCE_FILES_PROPERTIES(${SOURCE_DIRECTORY}/src/cdogs/sys_config.h PROPERTIES GENERATED TRUE)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src ${CMAKE_CURRENT_BINARY_DIR}/src/cdogs)
 
+if(EMSCRIPTEN)
+    set(CMAKE_STATIC_LIBRARY_SUFFIX ".bc")
+    set(CMAKE_SHARED_LIBRARY_SUFFIX ".bc")
+    set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif()
+
 #Tests
-enable_testing()
+if(NOT EMSCRIPTEN)
+    enable_testing()
+endif()
 
 add_subdirectory(src)
 
 # Build the shared library next to cdogs-sdl
+if(NOT EMSCRIPTEN)
 set_target_properties(hqx PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/src
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/src
@@ -165,14 +188,17 @@ set_target_properties(hqx PROPERTIES
 	LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/src
 	LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src
 )
+endif()
 set_target_properties(cdogs-sdl PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/src
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/src
 )
+if(NOT EMSCRIPTEN)
 set_target_properties(cdogs-sdl-editor PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/src
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/src
 )
+endif()
 
 ################
 # Installation #

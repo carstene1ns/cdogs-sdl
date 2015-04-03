@@ -667,6 +667,7 @@ void BlitFlip(GraphicsDevice *g)
 	{
 		Bilinear(pScreen, g->buf, size.x, size.y, scalef);
 	}
+#ifndef __EMSCRIPTEN__
 	else if (ConfigGetEnum(&gConfig, "Graphics.ScaleMode") == SCALE_MODE_HQX)
 	{
 		switch (scalef)
@@ -685,6 +686,7 @@ void BlitFlip(GraphicsDevice *g)
 			break;
 		}
 	}
+#endif
 	else
 	{
 		Scale8(pScreen, g->buf, size.x, size.y, scalef);

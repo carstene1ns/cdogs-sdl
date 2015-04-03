@@ -167,21 +167,25 @@ void RealPath(const char *src, char *dest)
 				*c = '/';
 			}
 		}
+#ifndef __EMSCRIPTEN__
 		FILE *f = fopen(srcBuf, "ab+");
 		CASSERT(f != NULL, "internal error: cannot create temp file");
 		fclose(f);
+#endif
 	}
 #endif
 	char *res = realpath(src, dest);
 #ifndef _WIN32
 	if (!exists)
 	{
+#ifndef __EMSCRIPTEN__
 		// delete the temporary file we created
 		const int res2 = remove(src);
 		if (res2 != 0)
 		{
 			fprintf(stderr, "Internal error: cannot delete\n");
 		}
+#endif
 	}
 #endif
 	if (!res)

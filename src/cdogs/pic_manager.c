@@ -28,7 +28,7 @@
 #include "pic_manager.h"
 
 #include <SDL_image.h>
-
+#include <strings.h>
 #include <tinydir/tinydir.h>
 
 #include "files.h"
@@ -170,7 +170,19 @@ static void PicManagerLoadDirImpl(
 		if (file.is_reg)
 		{
 			SDL_RWops *rwops = SDL_RWFromFile(file.path, "rb");
-			const bool isPng = IMG_isPNG(rwops);
+			bool isPng;
+#ifdef __EMSCRIPTEN__
+			/* fallback to file name */
+			const char *dot = strrchr(file.path, '.');
+			if(!dot || dot == file.path)
+				isPng = false;
+			if (strncasecmp(dot, ".png", 4) == 0)
+				isPng = true;
+			else
+				isPng = false;
+#else
+			isPng = IMG_isPNG(rwops);
+#endif
 			if (isPng)
 			{
 				SDL_Surface *data = IMG_Load_RW(rwops, 0);
@@ -195,7 +207,12 @@ static void PicManagerLoadDirImpl(
 					PicManagerAdd(&pm->pics, &pm->sprites, buf, data);
 				}
 			}
-			rwops->close(rwops);
+#ifdef __EMSCRIPTEN__
+			printf("possible memleak in PicManagerLoadDirImpl...\n");
+
+#else
+			SDL_RWclose(rwops);
+#endif
 		}
 		else if (file.is_dir && file.name[0] != '.')
 		{

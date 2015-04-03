@@ -52,6 +52,9 @@
 #include <stdio.h>
 
 #include <SDL.h>
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+#endif
 
 #include <cdogs/ammo.h>
 #include <cdogs/campaigns.h>
@@ -291,6 +294,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
+#ifdef __EMSCRIPTEN__
+	//debug = 1;
+	//debug_level = D_MAX;
+	//snd_flag = 0;
+	//isSoundEnabled = 0;
+	//js_flag = 0;
+	ConfigGet(&gConfig, "Graphics.ScaleFactor")->u.Int.Value = 2;
+	ConfigGet(&gConfig, "Graphics.ResolutionWidth")->u.Int.Value = 320,
+	ConfigGet(&gConfig, "Graphics.ResolutionHeight")->u.Int.Value = 240;
+#endif
+
 	debug(D_NORMAL, "Initialising SDL...\n");
 	if (SDL_Init(SDL_INIT_TIMER | snd_flag | SDL_INIT_VIDEO | js_flag) != 0)
 	{
@@ -310,6 +324,17 @@ int main(int argc, char *argv[])
 	GetDataFilePath(buf, "");
 	printf("Data directory:\t\t%s\n", buf);
 	printf("Config directory:\t%s\n\n",	GetConfigFilePath(""));
+
+#ifdef __EMSCRIPTEN__
+	// load filesystem
+	EM_ASM(
+		FS.mkdir('/config');
+		FS.mount(IDBFS, {}, '/config');
+		FS.syncfs(true, function(err) {
+			console.log("Error mounting config directory :/");
+		});
+	);
+#endif
 
 	if (isSoundEnabled)
 	{
@@ -362,6 +387,11 @@ int main(int argc, char *argv[])
 		err = EXIT_FAILURE;
 		goto bail;
 	}
+
+#ifdef __EMSCRIPTEN__
+	emscripten_set_canvas_size(640, 480);
+#endif
+
 	GetDataFilePath(buf, "graphics/font.png");
 	GetDataFilePath(buf2, "graphics/font.json");
 	FontLoad(&gFont, buf, buf2);
@@ -443,6 +473,15 @@ bail:
 	UnloadCredits(&creditsDisplayer);
 	UnloadAllCampaigns(&campaigns);
 	CampaignTerminate(&gCampaign);
+
+#ifdef __EMSCRIPTEN__
+	// save filesystem
+	EM_ASM(
+		FS.syncfs(function(err) {
+			console.log("Error syncing config directory :/");
+			});
+		);
+#endif
 
 	if (isSoundEnabled)
 	{

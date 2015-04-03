@@ -28,6 +28,7 @@
 #include "font.h"
 
 #include <SDL_image.h>
+#include <strings.h>
 
 #include "blit.h"
 #include "pic.h"
@@ -69,7 +70,14 @@ void FontLoad(Font *f, const char *imgPath, const char *jsonPath)
 	json_t *root = NULL;
 
 	SDL_RWops *rwops = SDL_RWFromFile(imgPath, "rb");
+#ifdef __EMSCRIPTEN__
+	const char *dot = strrchr(imgPath, '.');
+	if ((!dot || dot == imgPath) || (strncasecmp(dot, ".png", 4) != 0))
+		CASSERT(0, "Error: font file is not PNG");
+#else
 	CASSERT(IMG_isPNG(rwops), "Error: font file is not PNG");
+#endif
+
 	SDL_Surface *data = IMG_Load_RW(rwops, 0);
 	if (!data)
 	{
@@ -97,11 +105,17 @@ bail:
 		fclose(file);
 	}
 	SDL_FreeSurface(data);
-	rwops->close(rwops);
+
+#ifdef __EMSCRIPTEN__
+	printf("possible memleak in FontLoad...\n");
+
+#else
+	SDL_RWclose(rwops);
+#endif
 }
 void FontFromImage(Font *f, SDL_Surface *image, json_t *data)
 {
-	memset(f, 0, sizeof *f);
+	memset(f, 0, sizeof(*f));
 	CArrayInit(&f->Chars, sizeof(Pic));
 
 	if (image->format->BytesPerPixel != 4)
